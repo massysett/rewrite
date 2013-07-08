@@ -1,0 +1,110 @@
+.TH rewrite 1
+.
+.SH NAME
+rewrite - open file and rewrite it with new contents
+.
+.SH SYNOPSIS
+rewrite [
+.I OPTIONS
+]
+.I FILE
+.I PROGRAM
+[
+.I program options
+]
+.
+.SH DESCRIPTION
+.
+Opens the given
+.I FILE
+and reads its contents.
+Supplies it to the given
+.I PROGRAM
+on its standard input.
+Writes the output of
+.I PROGRAM
+to a temporary file.
+If
+.I PROGRAM
+exits with status 0, clobbers the existing
+.I FILE
+with the contents of the temporary file.
+If
+.I PROGRAM
+exits unsuccessfully, deletes the temporary file and
+does not change the contents of FILE.
+.
+.SH OPTIONS
+.TP
+\fB-b\fR, \fB--backup\fR \fISUFFIX\fR
+Copies the original file contents to a new file with
+.I .SUFFIX
+appended onto the end before writing the output of
+.I PROGRAM
+to the original file.
+If there was already a file with the given
+.IR SUFFIX ,
+.I rewrite
+will do nothing and fail and exit with an error message.
+.
+.SH WHY THIS IS USEFUL
+.
+If your program is like GNU
+.BR sed (1)
+and it has an
+.I --in-place
+option, or if it has some sort of option to write its output
+directly to a file (as opposed to writing it to standard output),
+then
+.I rewrite
+is not at all useful.
+.
+Otherwise, it is quite useful because there is no easy one-step way to
+do this in the shell.
+.
+.SH EXAMPLE
+.
+You want to sort a file in place. First you try
+.
+.P
+.RS
+.EX
+sort < myfile > myfile
+.EE
+.RE
+.P
+.
+but, oops, now
+.I myfile
+is empty! The shell had to open file descriptors for reading from
+.I myfile
+and for writing to
+.I myfile
+before it executed
+.IR sort .
+When the shell opened the write descriptor to
+.IR myfile ,
+its contents were clobbered.
+.
+.P
+No, trying
+.P
+.RS
+.EX
+sort > myfile < myfile
+.EE
+.RE
+.P
+doesn't yield a different result.
+.P
+.
+.P
+Instead, using
+.P
+.RS
+.EX
+rewrite myfile sort
+.EE
+.RE
+.P
+does what you want.
