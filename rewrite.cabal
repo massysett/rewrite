@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                rewrite
-version:             0.1.0.0
+version:             0.2
 synopsis:            open file and rewrite it with new contents
 description:
   In the Unix shell there is no easy way to use a filter program

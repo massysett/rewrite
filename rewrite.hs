@@ -57,10 +57,7 @@ doBackup :: InputFile -> Backup -> IO ()
 doBackup inf bak = D.copyFile inf (inf ++ "." ++ bak)
 
 
--- | Gets input from the file. Returns a computation that, when
--- applied to the name of a temporary directory, will complete the writing
--- of the program output to disk.
-getInput
+runProgram
   :: Maybe Backup
 
   -> InputFile
@@ -70,37 +67,35 @@ getInput
 
   -> [ProgramOpt]
 
-  -> IO.Handle
-  -- ^ Handle to input file
-
   -> FilePath
   -- ^ Temporary directory
 
   -> IO ()
-getInput mayBak inFile pn opts inHandle tempPath =
+runProgram mayBak inFile pn opts tempPath =
   let outPath = tempPath ++ "/output"
-  in IO.withFile outPath IO.WriteMode $ \outHandle -> do
-    writeReadme tempPath
-    let cp = P.CreateProcess
-          { P.cmdspec = P.RawCommand pn opts
-          , P.cwd = Nothing
-          , P.env = Nothing
-          , P.std_in = P.UseHandle inHandle
-          , P.std_out = P.UseHandle outHandle
-          , P.std_err = P.Inherit
-          , P.close_fds = False
-          , P.create_group = False }
-    (_, _, _, procHndle) <- P.createProcess cp
-    code <- P.waitForProcess procHndle
-    _ <- case code of
-      Exit.ExitSuccess -> return ()
-      Exit.ExitFailure bad ->
-        errExit $ "program " ++ pn ++ " exited with code "
-                  ++ show bad
-    _ <- case mayBak of
-      Nothing -> return ()
-      Just bak -> doBackup inFile bak
-    D.copyFile outPath inFile
+  in IO.withFile outPath IO.WriteMode $ \outHandle ->
+     IO.withFile inFile IO.ReadMode $ \inHandle -> do
+      writeReadme tempPath
+      let cp = P.CreateProcess
+            { P.cmdspec = P.RawCommand pn opts
+            , P.cwd = Nothing
+            , P.env = Nothing
+            , P.std_in = P.UseHandle inHandle
+            , P.std_out = P.UseHandle outHandle
+            , P.std_err = P.Inherit
+            , P.close_fds = False
+            , P.create_group = False }
+      (_, _, _, procHndle) <- P.createProcess cp
+      code <- P.waitForProcess procHndle
+      _ <- case code of
+        Exit.ExitSuccess -> return ()
+        Exit.ExitFailure bad ->
+          errExit $ "program " ++ pn ++ " exited with code "
+                    ++ show bad
+      _ <- case mayBak of
+        Nothing -> return ()
+        Just bak -> doBackup inFile bak
+      D.copyFile outPath inFile
 
 
 writeReadme
@@ -114,7 +109,4 @@ writeReadme fp = writeFile (fp ++ "/README")
 main :: IO ()
 main = do
   (mayBak, inf, pn, opts) <- parseArgs
-  let getIn h = return $ getInput mayBak inf pn opts h
-  applyToTempPath <- IO.withFile inf IO.ReadMode getIn
-  withSystemTempDirectory "rewrite" applyToTempPath
-  
+  withSystemTempDirectory "rewrite" $ runProgram mayBak inf pn opts

@@ -1,0 +1,23 @@
+In the Unix shell there is no easy way to use a filter program
+to change the contents of a file in-place. For example, if you
+want to sort a file in place, this will not work:
+
+sort < myfile > myfile
+
+All that will get you is an empty myfile. This package
+gives you the rewrite program, so this will work:
+
+rewrite myfile sort
+
+A --backup option is provided that will copy the existing file
+to a backup file before writing the new output. For example,
+this will create a file called myfile.bak:
+
+rewrite --backup bak myfile sort
+
+To install, use
+
+cabal install rewrite
+
+There is also a manpage in the source tarball; to install that,
+copy it to the right location (typically /usr/local/share/man/man1).
