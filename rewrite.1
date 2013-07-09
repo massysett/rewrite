@@ -34,14 +34,6 @@ If
 exits unsuccessfully, deletes the temporary file and
 does not change the contents of FILE.
 .
-.P
-The
-.I PROGRAM
-is executed using
-.BR execvp (3),
-.I not
-.BR system (3).
-.
 .SH OPTIONS
 .TP
 \fB-b\fR, \fB--backup\fR \fISUFFIX\fR
@@ -116,3 +108,34 @@ rewrite myfile sort
 .RE
 .P
 does what you want.
+.
+.SH NOTES
+The
+.I PROGRAM
+is executed using
+.BR execvp (3),
+.I not
+.BR system (3).
+Consider this when quoting your arguments.
+.
+.P
+The input file is read into memory and fed into the
+.I PROGRAM
+from memory.
+The result from
+.I PROGRAM
+is then held in memory before being written out to disk.
+This allows
+.B rewrite
+to work without ever using temporary files, so nothing is ever
+littered onto your hard drive.
+However, it also means that you will not want to use
+.B rewrite
+for huge files (with the size of "huge" varying depending on
+how much memory you have.)
+.
+.P
+The inode, permissions, and owner of the
+.I FILE
+are preserved when the output is written. If a backup is requested,
+the permissions of the original file are replicated on the backup.

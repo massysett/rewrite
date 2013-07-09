@@ -3,10 +3,10 @@ module Main (main) where
 import Data.Either (partitionEithers)
 import qualified System.Console.MultiArg as MA
 import qualified System.IO as IO
-import System.IO.Temp (withSystemTempDirectory)
 import qualified System.Exit as Exit
+import System.Process.ByteString (readProcessWithExitCode)
+import qualified Data.ByteString as BS
 import qualified System.Directory as D
-import qualified System.Process as P
 
 help :: String -> String
 help pn = unlines
@@ -67,26 +67,11 @@ runProgram
 
   -> [ProgramOpt]
 
-  -> FilePath
-  -- ^ Temporary directory
-
   -> IO ()
-runProgram mayBak inFile pn opts tempPath = do
-  writeReadme tempPath
-  let outPath = tempPath ++ "/output"
-  code <- IO.withFile outPath IO.WriteMode $ \outHandle ->
-    IO.withFile inFile IO.ReadMode $ \inHandle -> do
-      let cp = P.CreateProcess
-            { P.cmdspec = P.RawCommand pn opts
-            , P.cwd = Nothing
-            , P.env = Nothing
-            , P.std_in = P.UseHandle inHandle
-            , P.std_out = P.UseHandle outHandle
-            , P.std_err = P.Inherit
-            , P.close_fds = False
-            , P.create_group = False }
-      (_, _, _, ph) <- P.createProcess cp
-      P.waitForProcess ph
+runProgram mayBak inFile pn opts = do
+  input <- BS.readFile inFile
+  (code, out, err) <- readProcessWithExitCode pn opts input
+  BS.hPutStr IO.stderr err
   _ <- case code of
     Exit.ExitSuccess -> return ()
     Exit.ExitFailure bad ->
@@ -95,18 +80,10 @@ runProgram mayBak inFile pn opts tempPath = do
   _ <- case mayBak of
     Nothing -> return ()
     Just bak -> doBackup inFile bak
-  D.copyFile outPath inFile
+  BS.writeFile inFile out
 
-
-writeReadme
-  :: FilePath
-  -- ^ Temporary directory
-  -> IO ()
-
-writeReadme fp = writeFile (fp ++ "/README")
-  "This directory created by the rewrite program."
 
 main :: IO ()
 main = do
   (mayBak, inf, pn, opts) <- parseArgs
-  withSystemTempDirectory "rewrite" $ runProgram mayBak inf pn opts
+  runProgram mayBak inf pn opts
