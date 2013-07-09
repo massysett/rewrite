@@ -34,18 +34,26 @@ If
 exits unsuccessfully, deletes the temporary file and
 does not change the contents of FILE.
 .
+.P
+The
+.I PROGRAM
+is executed using
+.BR execvp (3),
+.I not
+.BR system (3).
+.
 .SH OPTIONS
 .TP
 \fB-b\fR, \fB--backup\fR \fISUFFIX\fR
 Copies the original file contents to a new file with
 .I .SUFFIX
-appended onto the end before writing the output of
+appended onto the end of the name before writing the output of
 .I PROGRAM
 to the original file.
 If there was already a file with the given
 .IR SUFFIX ,
 .I rewrite
-will do nothing and fail and exit with an error message.
+will clobber it with the new file.
 .
 .SH WHY THIS IS USEFUL
 .
