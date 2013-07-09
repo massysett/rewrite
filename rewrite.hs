@@ -71,11 +71,11 @@ runProgram
   -- ^ Temporary directory
 
   -> IO ()
-runProgram mayBak inFile pn opts tempPath =
+runProgram mayBak inFile pn opts tempPath = do
+  writeReadme tempPath
   let outPath = tempPath ++ "/output"
-  in IO.withFile outPath IO.WriteMode $ \outHandle ->
-     IO.withFile inFile IO.ReadMode $ \inHandle -> do
-      writeReadme tempPath
+  code <- IO.withFile outPath IO.WriteMode $ \outHandle ->
+    IO.withFile inFile IO.ReadMode $ \inHandle -> do
       let cp = P.CreateProcess
             { P.cmdspec = P.RawCommand pn opts
             , P.cwd = Nothing
@@ -85,17 +85,17 @@ runProgram mayBak inFile pn opts tempPath =
             , P.std_err = P.Inherit
             , P.close_fds = False
             , P.create_group = False }
-      (_, _, _, procHndle) <- P.createProcess cp
-      code <- P.waitForProcess procHndle
-      _ <- case code of
-        Exit.ExitSuccess -> return ()
-        Exit.ExitFailure bad ->
-          errExit $ "program " ++ pn ++ " exited with code "
-                    ++ show bad
-      _ <- case mayBak of
-        Nothing -> return ()
-        Just bak -> doBackup inFile bak
-      D.copyFile outPath inFile
+      (_, _, _, ph) <- P.createProcess cp
+      P.waitForProcess ph
+  _ <- case code of
+    Exit.ExitSuccess -> return ()
+    Exit.ExitFailure bad ->
+      errExit $ "program " ++ pn ++ " exited with code "
+                ++ show bad
+  _ <- case mayBak of
+    Nothing -> return ()
+    Just bak -> doBackup inFile bak
+  D.copyFile outPath inFile
 
 
 writeReadme
