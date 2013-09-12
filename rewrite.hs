@@ -37,8 +37,8 @@ errExit msg = do
 -- positional arguments
 parseArgs :: IO (Maybe Backup, InputFile, ProgName, [ProgramOpt])
 parseArgs = do
-  let opts = [ MA.OptSpec ["backup"] "b" (MA.OneArg Left) ]
-  as <- MA.simpleWithHelp help MA.StopOptions opts (return . Right)
+  let opts = [ MA.OptSpec ["backup"] "b" (MA.OneArg (return . Left)) ]
+  as <- MA.simpleHelp help opts MA.StopOptions (return . Right)
   let (baks, os) = partitionEithers as
   bak <- case baks of
     [] -> return Nothing

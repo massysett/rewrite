@@ -1,5 +1,5 @@
 name:                rewrite
-version:             0.4
+version:             0.6
 synopsis:            open file and rewrite it with new contents
 description:
   In the Unix shell there is no easy way to use a filter program
@@ -31,7 +31,7 @@ executable rewrite
   main-is: rewrite.hs
   build-depends:
       base ==4.6.*
-    , multiarg ==0.16.*
+    , multiarg ==0.24.*
     , directory ==1.2.*
     , process-extras ==0.2.*
     , bytestring ==0.10.*
