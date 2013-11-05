@@ -21,17 +21,18 @@ and reads its contents.
 Supplies it to the given
 .I PROGRAM
 on its standard input.
-Writes the output of
+Keeps the output of
 .I PROGRAM
-to a temporary file.
+in memory.
 If
 .I PROGRAM
 exits with status 0, clobbers the existing
 .I FILE
-with the contents of the temporary file.
+with the output of
+.IR PROGRAM .
 If
 .I PROGRAM
-exits unsuccessfully, deletes the temporary file and
+exits unsuccessfully,
 does not change the contents of FILE.
 .
 .SH OPTIONS
