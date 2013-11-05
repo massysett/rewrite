@@ -9,6 +9,8 @@ import qualified System.Directory as D
 import qualified Control.Concurrent as C
 import qualified Control.Exception as Ex
 import qualified System.Process as P
+import qualified Paths_rewrite as Pr
+import qualified Data.Version as Ver
 
 help :: String -> String
 help pn = unlines
@@ -20,9 +22,14 @@ help pn = unlines
   , ""
   , "Options:"
   , "  -h, --help          Show help and exit"
+  , "  --version           Show version and exit"
   , "  -b, --backup SUFFIX Back up FILE to file with given SUFFIX"
   , "                      before writing new file"
   ]
+
+version :: String -> String
+version pn = unlines
+  [ pn ++ " " ++ Ver.showVersion Pr.version ]
 
 type Backup = String
 type ProgramOpt = String
@@ -40,7 +47,8 @@ errExit msg = do
 parseArgs :: IO (Maybe Backup, InputFile, ProgName, [ProgramOpt])
 parseArgs = do
   let opts = [ MA.OptSpec ["backup"] "b" (MA.OneArg (return . Left)) ]
-  as <- MA.simpleHelp help opts MA.StopOptions (return . Right)
+  as <- MA.simpleHelpVersion help version
+                             opts MA.StopOptions (return . Right)
   let (baks, os) = partitionEithers as
   bak <- case baks of
     [] -> return Nothing
