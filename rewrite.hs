@@ -21,10 +21,11 @@ help pn = unlines
   , "Aborts if PROGRAM exits with non-zero exit status."
   , ""
   , "Options:"
-  , "  -h, --help          Show help and exit"
-  , "  --version           Show version and exit"
   , "  -b, --backup SUFFIX Back up FILE to file with given SUFFIX"
   , "                      before writing new file"
+  , ""
+  , "  -h, --help          Show help and exit"
+  , "  --version           Show version and exit"
   ]
 
 version :: String -> String
